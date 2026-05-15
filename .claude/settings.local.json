@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes --name fuelcontrol)",
+      "Bash(npx --yes create-next-app@latest fuelapp --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(xargs grep:*)",
+      "Bash(cp \"c:/Users/USER/Documents/DOC's/SoftWise/Softwise-Proj/FuelControl/fuelapp/middleware.ts\" \"c:/Users/USER/Documents/DOC's/SoftWise/Softwise-Proj/FuelControl/fuelapp/proxy.ts\")",
+      "Bash(rm \"c:/Users/USER/Documents/DOC's/SoftWise/Softwise-Proj/FuelControl/fuelapp/middleware.ts\")",
+      "Bash(grep -E \"\\\\.json$|\\\\.config\\\\.\")",
+      "Bash(set PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=yes)",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=yes npx prisma migrate reset --force)",
+      "Bash(npx tsx -e ' *)",
+      "Bash(npx tsx *)",
+      "Bash(del \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\\\\check-auth.ts\")",
+      "Bash(Get-ChildItem -Path . -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(del \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\\\\prisma\\\\update-dates.ts\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\" -Force)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(git ls-files *)",
+      "Bash(Get-ChildItem -Recurse -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(node -e ' *)",
+      "Bash(npx dotenv -e .env -- node -e ' *)",
+      "Bash(psql \"postgresql://postgres:0n3SM-dev@localhost:5432/fuelcontrol?schema=public\" -c \"SELECT id, email, name, role FROM \\\\\"User\\\\\" ORDER BY \\\\\"createdAt\\\\\";\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\" -Recurse -File)",
+      "Bash(Select-Object FullName)",
+      "Bash(Sort-Object FullName)",
+      "Bash(grep -E \"\\\\.ts$|\\\\.tsx$\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\" -Recurse -Directory)",
+      "Bash(Select-Object -First 30 FullName)",
+      "Bash(mkdir -p \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\\\\app\\\\api\\\\kiosk\\\\lookup\" \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\\\\app\\\\api\\\\kiosk\\\\submit\" \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\\\\app\\\\quioskiii\" 2>/dev/null; echo \"done\")",
+      "Bash(Get-Content \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\\\\.next\\\\dev\\\\server\\\\middleware.js\")",
+      "Bash(Select-Object -First 5)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\USER\\Documents\\DOCS\\SoftWise\\Softwise-Proj\\FuelControl\\app\\api\\kiosk"
+    ]
+  }
+}

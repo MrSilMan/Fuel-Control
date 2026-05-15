@@ -1,26 +1,232 @@
 @import "tailwindcss";
 
+/* ─── TAAG Angola Brand Palette ──────────────────────────────────────────────
+   Primary:  #C44020  — TAAG warm orange-red (logo-accurate)
+   Gold:     #D4870A  — Amber fuel accent
+   Navy:     #0D1526  — Deep sidebar navy
+   ─────────────────────────────────────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F2F4F8;
+  --foreground: #0F1117;
+  --card: #FFFFFF;
+  --card-foreground: #0F1117;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F1117;
+  --primary: #C44020;
+  --primary-foreground: #FFFFFF;
+  --secondary: #ECEEF3;
+  --secondary-foreground: #0F1117;
+  --muted: #ECEEF3;
+  --muted-foreground: #4B5563;
+  --accent: #ECEEF3;
+  --accent-foreground: #0F1117;
+  --destructive: #C44020;
+  --destructive-foreground: #FFFFFF;
+  --border: #E0E2E9;
+  --input: #E0E2E9;
+  --ring: #C44020;
+  --radius: 0.75rem;
+  --sidebar-bg: #0D1526;
+  --sidebar-fg: #FAFAFA;
+
+  /* TAAG semantic tokens */
+  --taag: #C44020;
+  --taag-hover: #A53518;
+  --taag-light: #E55535;
+  --taag-soft: rgba(196, 64, 32, 0.1);
+  --taag-border: rgba(196, 64, 32, 0.25);
+  --taag-gold: #D4870A;
+  --taag-gold-soft: rgba(212, 135, 10, 0.1);
+}
+
+.dark {
+  --background: #0C0C0F;
+  --foreground: #F8F9FA;
+  --card: #141418;
+  --card-foreground: #F8F9FA;
+  --popover: #1C1C22;
+  --popover-foreground: #F8F9FA;
+  --primary: #D9532E;
+  --primary-foreground: #FFFFFF;
+  --secondary: #22222A;
+  --secondary-foreground: #F8F9FA;
+  --muted: #1E1E26;
+  --muted-foreground: #9CA3AF;
+  --accent: #22222A;
+  --accent-foreground: #F8F9FA;
+  --destructive: #D9532E;
+  --destructive-foreground: #FFFFFF;
+  --border: #2C2C36;
+  --input: #2C2C36;
+  --ring: #D9532E;
+  --sidebar-bg: #080C14;
+  --sidebar-fg: #FAFAFA;
+
+  --taag: #D9532E;
+  --taag-hover: #B83E20;
+  --taag-light: #E86040;
+  --taag-soft: rgba(217, 83, 46, 0.12);
+  --taag-border: rgba(217, 83, 46, 0.3);
+  --taag-gold: #E09020;
+  --taag-gold-soft: rgba(224, 144, 32, 0.12);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-sidebar-fg: var(--sidebar-fg);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Toast progress ──────────────────────────────────────────────────────── */
+@keyframes toast-progress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+.toast-progress-bar {
+  will-change: transform;
+  animation: toast-progress 5s linear forwards;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
+
+/* ── Login left-panel textures ───────────────────────────────────────────── */
+.login-dot-grid {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.25) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.login-stripes {
+  background-image: repeating-linear-gradient(
+    -55deg,
+    rgba(255,255,255,0.04) 0px,
+    rgba(255,255,255,0.04) 1px,
+    transparent 1px,
+    transparent 14px
+  );
+}
+
+/* ── Login right-panel ambient decorations ───────────────────────────────── */
+@keyframes orb-drift-1 {
+  0%, 100% { transform: translate(0, 0); }
+  50%       { transform: translate(24px, -32px); }
+}
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0, 0); }
+  50%       { transform: translate(-28px, 22px); }
+}
+@keyframes orb-drift-3 {
+  0%, 100% { transform: translate(0, 0); }
+  33%       { transform: translate(14px, -18px); }
+  66%       { transform: translate(-10px, 12px); }
+}
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes blink-soft {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.login-orb-1 { animation: orb-drift-1 16s ease-in-out infinite; }
+.login-orb-2 { animation: orb-drift-2 21s ease-in-out infinite; }
+.login-orb-3 { animation: orb-drift-3 13s ease-in-out infinite; }
+.login-float-1 { animation: gentle-float 5s ease-in-out infinite; }
+.login-float-2 { animation: gentle-float 6.5s ease-in-out infinite; animation-delay: -2.5s; }
+.login-blink   { animation: blink-soft 2.5s ease-in-out infinite; }
+
+.login-dot-grid-right {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.032) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+/* ── Page fade-in ────────────────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: fade-in 0.22s ease-out forwards;
+}
+
+/* ── Stat card left-border accents ───────────────────────────────────────── */
+.stat-accent-orange { border-left: 3px solid #C44020; }
+.stat-accent-blue   { border-left: 3px solid #3B82F6; }
+.stat-accent-gold   { border-left: 3px solid #D4870A; }
+.stat-accent-green  { border-left: 3px solid #10B981; }
+.stat-accent-purple { border-left: 3px solid #8B5CF6; }
+
+/* ── Stat card top-border accents ────────────────────────────────────────── */
+.stat-top-orange { border-top: 3px solid #C44020; }
+.stat-top-blue   { border-top: 3px solid #3B82F6; }
+.stat-top-gold   { border-top: 3px solid #D4870A; }
+.stat-top-green  { border-top: 3px solid #10B981; }
+
+/* ── KPI icon backgrounds ────────────────────────────────────────────────── */
+.icon-bg-orange { background-color: #FFEDD5; }   /* orange-100 — clearly tinted */
+.icon-bg-blue   { background-color: #DBEAFE; }   /* blue-100   */
+.icon-bg-gold   { background-color: #FEF3C7; }   /* amber-100  */
+.icon-bg-green  { background-color: #D1FAE5; }   /* emerald-100 */
+
+.dark .icon-bg-orange { background-color: rgba(196, 64,  32, 0.20); }
+.dark .icon-bg-blue   { background-color: rgba(59,  130, 246, 0.20); }
+.dark .icon-bg-gold   { background-color: rgba(212, 135, 10, 0.20); }
+.dark .icon-bg-green  { background-color: rgba(16,  185, 129, 0.20); }
+
+/* ── Fuel badge colours (used by badge.tsx gasolina/gasoleo variants) ────── */
+.fuel-gasolina         { background-color: #FDE68A; color: #431407; } /* amber-200 / amber-950 */
+.dark .fuel-gasolina   { background-color: rgba(245,158,11,0.28); color: #FEF3C7; }
+
+.fuel-gasoleo          { background-color: #BFDBFE; color: #172554; } /* blue-200  / blue-950  */
+.dark .fuel-gasoleo    { background-color: rgba(59,130,246,0.28);  color: #DBEAFE; }
+
+/* ── Dashboard hero gradient ─────────────────────────────────────────────── */
+.admin-hero {
+  background: linear-gradient(135deg, #0D1526 0%, #1A2640 60%, #1E2030 100%);
+}
+
+/* ── Card hover lift ─────────────────────────────────────────────────────── */
+.card-hover {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.card-hover:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
 }

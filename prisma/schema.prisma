@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Vehicle {
+  id        String    @id @default(cuid())
+  matricula String    @unique
+  tipo      String
+  createdAt DateTime  @default(now())
+  logs      FuelLog[]
+}
+
+model Driver {
+  id        String    @id @default(cuid())
+  nome      String
+  nMec      String    @unique
+  area      String
+  createdAt DateTime  @default(now())
+  logs      FuelLog[]
+}
+
+model FuelLog {
+  id         String   @id @default(cuid())
+  vehicleId  String
+  driverId   String
+  gasolina   Float?
+  gasoleo    Float?
+  data       DateTime
+  observacao String?
+  hora       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  vehicle    Vehicle  @relation(fields: [vehicleId], references: [id])
+  driver     Driver   @relation(fields: [driverId], references: [id])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  mecNumber String?  @unique
+  password  String
+  name      String
+  role      Role     @default(OPERATOR)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String   // CREATE | UPDATE | DELETE
+  entity      String   // FuelLog | Vehicle | Driver
+  entityId    String
+  actorId     String?
+  actorEmail  String?
+  actorName   String?
+  detail      String?
+  createdAt   DateTime @default(now())
+
+  @@index([entity])
+  @@index([createdAt(sort: Desc)])
+}
+
+enum Role {
+  ADMIN
+  OPERATOR
+}
