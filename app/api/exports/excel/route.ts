@@ -36,6 +36,31 @@ export async function GET(request: NextRequest) {
     where.vehicle = { tipo: { contains: filters.vehicleType, mode: "insensitive" } };
   }
 
+  if (filters.matricula) {
+    where.vehicle = {
+      ...((where.vehicle as object) || {}),
+      matricula: { contains: filters.matricula, mode: "insensitive" },
+    };
+  }
+
+  if (filters.area) {
+    where.driver = { area: { contains: filters.area, mode: "insensitive" } };
+  }
+
+  if (filters.driverName) {
+    where.driver = {
+      ...((where.driver as object) || {}),
+      nome: { contains: filters.driverName, mode: "insensitive" },
+    };
+  }
+
+  if (filters.nMec) {
+    where.driver = {
+      ...((where.driver as object) || {}),
+      nMec: { contains: filters.nMec, mode: "insensitive" },
+    };
+  }
+
   if (filters.fuelType === "gasolina") {
     where.gasolina = { not: null };
   } else if (filters.fuelType === "gasoleo") {

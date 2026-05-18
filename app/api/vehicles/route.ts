@@ -7,11 +7,27 @@ import { z } from "zod";
 const createVehicleSchema = z.object({
   matricula: z.string().min(1, "Matrícula é obrigatória"),
   tipo: z.string().min(1, "Tipo é obrigatório"),
+  km: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null ? undefined : Number(v)),
+    z.number().int().min(0).optional().nullable()
+  ),
+  nextMaintenanceKm: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null ? undefined : Number(v)),
+    z.number().int().min(1).optional().nullable()
+  ),
 });
 
 const updateVehicleSchema = z.object({
   matricula: z.string().min(1, "Matrícula é obrigatória").optional(),
   tipo: z.string().min(1, "Tipo é obrigatório").optional(),
+  km: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null ? undefined : Number(v)),
+    z.number().int().min(0).optional().nullable()
+  ),
+  nextMaintenanceKm: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null ? undefined : Number(v)),
+    z.number().int().min(1).optional().nullable()
+  ),
 });
 
 export async function GET(_request: NextRequest) {

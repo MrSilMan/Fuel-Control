@@ -11,6 +11,10 @@ export const createFuelLogSchema = z.object({
     (v) => (v === "" || v === undefined ? undefined : v === null ? null : Number(v)),
     z.number().positive("Deve ser positivo").optional().nullable()
   ),
+  km: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null ? undefined : Number(v)),
+    z.number().int().min(0, "Deve ser positivo").optional().nullable()
+  ),
   data: z.preprocess(
     (v) => (typeof v === "string" || v instanceof Date ? new Date(v as string) : v),
     z.date({ message: "Data inválida" })

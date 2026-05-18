@@ -27,12 +27,15 @@ export async function GET() {
   const todayStart = startOfDay(now);
   const todayEnd = endOfDay(now);
 
+  const MAINTENANCE_WARNING_THRESHOLD = 500;
+
   const [
     monthLogs,
     todayCount,
     allDriverActivity,
     allVehicleActivity,
     last30DaysLogs,
+    vehiclesWithKm,
   ] = await Promise.all([
     // Month totals
     prisma.fuelLog.findMany({
@@ -64,6 +67,11 @@ export async function GET() {
       where: { data: { gte: subDays(now, 30) }, ...driverFilter },
       select: { data: true, gasolina: true, gasoleo: true },
       orderBy: { data: "asc" },
+    }),
+    // Vehicles with both km fields set (for maintenance alerts)
+    prisma.vehicle.findMany({
+      where: { km: { not: null }, nextMaintenanceKm: { not: null } },
+      select: { id: true, matricula: true, tipo: true, km: true, nextMaintenanceKm: true },
     }),
   ]);
 
@@ -119,6 +127,22 @@ export async function GET() {
     ...values,
   }));
 
+  const maintenanceAlerts = vehiclesWithKm
+    .filter((v) => v.nextMaintenanceKm! - v.km! <= MAINTENANCE_WARNING_THRESHOLD)
+    .map((v) => {
+      const remaining = Math.max(0, v.nextMaintenanceKm! - v.km!);
+      return {
+        id: v.id,
+        matricula: v.matricula,
+        tipo: v.tipo,
+        km: v.km!,
+        nextMaintenanceKm: v.nextMaintenanceKm!,
+        status: remaining <= 0 ? "due" : "warning",
+        remaining,
+      };
+    })
+    .sort((a, b) => a.remaining - b.remaining);
+
   return NextResponse.json({
     totalGasolinaMonth,
     totalGasoleoMonth,
@@ -126,5 +150,6 @@ export async function GET() {
     topDriver,
     topVehicle,
     chartData,
+    maintenanceAlerts,
   });
 }

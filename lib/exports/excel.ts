@@ -87,13 +87,21 @@ export async function generateExcelReport(
   }
 
   // ── Title ─────────────────────────────────────────────────────
-  sheet.mergeCells("A1:J1");
+  sheet.mergeCells("A1:G1");
   const titleCell = sheet.getCell("A1");
   titleCell.value = "MAPA DE CONTROLO DE COMBUSTÍVEL";
   titleCell.font = { bold: true, size: 14, color: { argb: C.WHITE }, name: "Calibri" };
   titleCell.fill = makeFill(C.BLUE);
   titleCell.alignment = { horizontal: "center", vertical: "middle" };
   sheet.getRow(1).height = 36;
+
+  // ── Brand badge (top-right) ────────────────────────────────────
+  sheet.mergeCells("H1:J1");
+  const brandCell = sheet.getCell("H1");
+  brandCell.value = "⛽ FuelControl";
+  brandCell.font = { bold: true, size: 11, color: { argb: C.WHITE }, name: "Calibri" };
+  brandCell.fill = makeFill("FFC44020");
+  brandCell.alignment = { horizontal: "center", vertical: "middle" };
 
   // ── Subtitle ──────────────────────────────────────────────────
   sheet.mergeCells("A2:J2");
@@ -228,6 +236,20 @@ export async function generateExcelReport(
   addStat("Gasóleo", totalGasoleo, "Litros de gasóleo consumidos", true);
   addStat(`Consumo Médio Diário (÷ ${daysInPeriod} dias)`, parseFloat(dailyAvg.toFixed(1)), "Consumo total ÷ dias do mês");
   addStat("Dia com Maior Consumo", peakDay, `${peakAmt.toFixed(1)} L consumidos nesse dia`);
+
+  // ── Signature row ─────────────────────────────────────────────
+  sheet.addRow([]);
+  const sigIdx = sheet.lastRow!.number + 1;
+  sheet.addRow([]);
+  sheet.mergeCells(`A${sigIdx}:J${sigIdx}`);
+  const sigRow = sheet.getRow(sigIdx);
+  sigRow.height = 16;
+  const sigCell = sheet.getCell(`A${sigIdx}`);
+  sigCell.value = `Gerado por FuelControl — Sistema de Gestão de Combustível de Frota  ·  ${new Date().toLocaleDateString("pt-PT")}`;
+  sigCell.font = { italic: true, size: 8, color: { argb: "FFCC5500" } };
+  sigCell.fill = makeFill("FFFFF8F5");
+  sigCell.alignment = { horizontal: "center", vertical: "middle" };
+  sigCell.border = { top: { style: "thin", color: { argb: "FFFFD0B0" } }, diagonal: {} };
 
   // ── Column widths ─────────────────────────────────────────────
   [15, 12, 22, 10, 12, 14, 14, 13, 9, 28].forEach((w, i) => {

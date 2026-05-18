@@ -25,10 +25,23 @@ import {
   Plus,
   ArrowRight,
   Activity,
+  Wrench,
+  AlertTriangle,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+
+interface MaintenanceAlert {
+  id: string;
+  matricula: string;
+  tipo: string;
+  km: number;
+  nextMaintenanceKm: number;
+  status: "due" | "warning";
+  remaining: number;
+}
 
 interface DashboardData {
   totalGasolinaMonth: number;
@@ -37,6 +50,7 @@ interface DashboardData {
   topDriver: { nome: string; nMec: string; area: string; count: number } | null;
   topVehicle: { matricula: string; tipo: string; count: number } | null;
   chartData: Array<{ date: string; gasolina: number; gasoleo: number }>;
+  maintenanceAlerts: MaintenanceAlert[];
 }
 
 /* ── KPI variant lookup tables ──────────────────────────────────────────── */
@@ -370,6 +384,86 @@ function AdminDashboard({ data }: { data: DashboardData }) {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Maintenance alerts */}
+      <div className="bg-card rounded-2xl border border-border/60 p-5">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className={cn(
+              "h-9 w-9 rounded-xl flex items-center justify-center shrink-0",
+              data.maintenanceAlerts.length > 0 ? "bg-destructive/10" : "bg-emerald-500/10"
+            )}>
+              <Wrench className={cn(
+                "h-4.5 w-4.5",
+                data.maintenanceAlerts.length > 0 ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"
+              )} />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Manutenção
+              </p>
+              <p className="text-[11px] text-muted-foreground/70">Estado das viaturas</p>
+            </div>
+          </div>
+          {data.maintenanceAlerts.length > 0 && (
+            <span className={cn(
+              "text-xs font-bold rounded-full px-2.5 py-0.5",
+              data.maintenanceAlerts.some((v) => v.status === "due")
+                ? "bg-destructive/10 text-destructive"
+                : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+            )}>
+              {data.maintenanceAlerts.length} alerta{data.maintenanceAlerts.length !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+
+        {data.maintenanceAlerts.length === 0 ? (
+          <div className="flex items-center gap-2.5 py-2 text-emerald-600 dark:text-emerald-400">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <p className="text-sm font-medium">Todas as viaturas em dia</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {data.maintenanceAlerts.map((v) => (
+              <div
+                key={v.id}
+                className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 bg-muted/40"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Car className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-bold font-mono text-sm text-foreground leading-tight">
+                      {v.matricula}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {v.tipo} · {v.km.toLocaleString("pt-PT")} km
+                    </p>
+                  </div>
+                </div>
+                <div className={cn(
+                  "shrink-0 flex items-center gap-1.5 text-xs font-semibold rounded-lg px-2.5 py-1",
+                  v.status === "due"
+                    ? "bg-destructive/10 text-destructive"
+                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                )}>
+                  {v.status === "due" ? (
+                    <><Wrench className="h-3 w-3" /> Necessária</>
+                  ) : (
+                    <><AlertTriangle className="h-3 w-3" /> {v.remaining.toLocaleString("pt-PT")} km</>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Link
+          href="/vehicles"
+          className="mt-4 flex items-center gap-1.5 text-xs text-[#C44020] hover:text-[#A53518] font-medium transition-colors"
+        >
+          Gerir viaturas <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
 
       {/* Highlights row */}

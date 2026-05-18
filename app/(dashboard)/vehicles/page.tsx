@@ -16,13 +16,25 @@ import {
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Trash2, Pencil, Car, Loader2, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, Pencil, Car, Loader2, AlertTriangle, Wrench } from "lucide-react";
 
 interface Vehicle {
   id: string;
   matricula: string;
   tipo: string;
+  km: number | null;
+  nextMaintenanceKm: number | null;
   createdAt: string;
+}
+
+const MAINTENANCE_WARNING_THRESHOLD = 500;
+
+function getMaintenanceStatus(vehicle: Vehicle) {
+  if (vehicle.km == null || vehicle.nextMaintenanceKm == null) return null;
+  const remaining = vehicle.nextMaintenanceKm - vehicle.km;
+  if (remaining <= 0) return { status: "due" as const, remaining: 0 };
+  if (remaining <= MAINTENANCE_WARNING_THRESHOLD) return { status: "warning" as const, remaining };
+  return { status: "ok" as const, remaining };
 }
 
 const VEHICLE_TYPES = ["HIACE", "Coaster", "Foton", "Pickup", "Sedan", "SUV", "Outro"];
@@ -129,11 +141,11 @@ export default function VehiclesPage() {
   const [loading, setLoading]         = useState(true);
   const [adding, setAdding]           = useState(false);
   const [showForm, setShowForm]       = useState(false);
-  const [form, setForm]               = useState({ matricula: "", tipo: "" });
+  const [form, setForm]               = useState({ matricula: "", tipo: "", km: "", nextMaintenanceKm: "" });
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleting, setDeleting]       = useState(false);
   const [editTarget, setEditTarget]   = useState<Vehicle | null>(null);
-  const [editForm, setEditForm]       = useState({ matricula: "", tipo: "" });
+  const [editForm, setEditForm]       = useState({ matricula: "", tipo: "", km: "", nextMaintenanceKm: "" });
   const [saving, setSaving]           = useState(false);
 
   const router  = useRouter();
@@ -170,7 +182,7 @@ export default function VehiclesPage() {
       });
       if (!res.ok) throw new Error((await res.json()).error);
       toast({ variant: "success", title: "Viatura adicionada" });
-      setForm({ matricula: "", tipo: "" });
+      setForm({ matricula: "", tipo: "", km: "", nextMaintenanceKm: "" });
       setShowForm(false);
       fetchVehicles();
     } catch (err) {
@@ -186,7 +198,12 @@ export default function VehiclesPage() {
 
   function openEdit(v: Vehicle) {
     setEditTarget(v);
-    setEditForm({ matricula: v.matricula, tipo: v.tipo });
+    setEditForm({
+      matricula: v.matricula,
+      tipo: v.tipo,
+      km: v.km != null ? String(v.km) : "",
+      nextMaintenanceKm: v.nextMaintenanceKm != null ? String(v.nextMaintenanceKm) : "",
+    });
   }
 
   async function handleSaveEdit() {
@@ -253,7 +270,7 @@ export default function VehiclesPage() {
               <Button
                 size="sm"
                 className="bg-[#C44020] hover:bg-[#A53518] text-white border-0 rounded-xl h-9 shadow-sm"
-                onClick={() => setShowForm((v) => !v)}
+                onClick={() => setShowForm(true)}
               >
                 <Plus className="h-3.5 w-3.5 mr-1.5" />
                 Nova Viatura
@@ -261,53 +278,6 @@ export default function VehiclesPage() {
             )}
           </div>
 
-          {/* Add form */}
-          {showForm && isAdmin && (
-            <div className="bg-card rounded-2xl border border-border/60 p-5 shadow-sm">
-              <p className="text-sm font-semibold text-foreground mb-4">Adicionar Viatura</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Matrícula
-                  </Label>
-                  <Input
-                    placeholder="LD-12-45-HY"
-                    value={form.matricula}
-                    onChange={(e) => setForm({ ...form, matricula: e.target.value.toUpperCase() })}
-                    className="h-10 rounded-xl"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Tipo
-                  </Label>
-                  <VehicleTypeSelect
-                    value={form.tipo}
-                    onChange={(v) => setForm({ ...form, tipo: v })}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2 mt-4">
-                <Button
-                  size="sm"
-                  className="bg-[#C44020] hover:bg-[#A53518] text-white border-0 rounded-xl"
-                  onClick={handleAdd}
-                  disabled={adding}
-                >
-                  {adding && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
-                  Guardar
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="rounded-xl"
-                  onClick={() => setShowForm(false)}
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </div>
-          )}
 
           {/* Content */}
           {loading ? (
@@ -334,83 +304,254 @@ export default function VehiclesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {vehicles.map((v) => (
-                <div
-                  key={v.id}
-                  className="group bg-card rounded-2xl border border-border/60 p-4 card-hover"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    {/* Icon + info */}
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="icon-bg-orange rounded-xl p-2.5 shrink-0">
-                        <Car className="h-5 w-5 text-[#C44020] dark:text-orange-300" />
+              {vehicles.map((v) => {
+                const ms = getMaintenanceStatus(v);
+                return (
+                  <div
+                    key={v.id}
+                    className="group bg-card rounded-2xl border border-border/60 p-4 card-hover flex flex-col gap-0"
+                  >
+                    {/* Header row */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="icon-bg-orange rounded-xl p-2.5 shrink-0">
+                          <Car className="h-5 w-5 text-[#C44020] dark:text-orange-300" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold font-mono text-foreground text-sm leading-none truncate">
+                            {v.matricula}
+                          </p>
+                          <span
+                            className={`inline-block mt-2 text-xs font-bold border rounded-full px-2 py-0.5 ${
+                              TIPO_COLORS[v.tipo] ?? TIPO_COLORS.Outro
+                            }`}
+                          >
+                            {v.tipo}
+                          </span>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="font-bold font-mono text-foreground text-sm leading-none truncate">
-                          {v.matricula}
-                        </p>
-                        <span
-                          className={`inline-block mt-2 text-xs font-bold border rounded-full px-2 py-0.5 ${
-                            TIPO_COLORS[v.tipo] ?? TIPO_COLORS.Outro
-                          }`}
-                        >
-                          {v.tipo}
-                        </span>
-                      </div>
+
+                      {isAdmin && (
+                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+                            onClick={() => openEdit(v)}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/8"
+                            onClick={() => setDeleteTarget(v.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Actions */}
-                    {isAdmin && (
-                      <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
-                          onClick={() => openEdit(v)}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/8"
-                          onClick={() => setDeleteTarget(v.id)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                    {/* Stats row */}
+                    {(v.km != null || v.nextMaintenanceKm != null) && (
+                      <div className="mt-3 pt-3 border-t border-border/40 grid grid-cols-2 gap-x-3">
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">
+                            Km atual
+                          </p>
+                          <p className="text-sm font-semibold text-foreground">
+                            {v.km != null ? v.km.toLocaleString("pt-PT") : "—"} km
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">
+                            Próx. manutenção
+                          </p>
+                          <p className="text-sm font-semibold text-foreground">
+                            {v.nextMaintenanceKm != null ? v.nextMaintenanceKm.toLocaleString("pt-PT") : "—"} km
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Maintenance alert — only when actionable */}
+                    {ms && ms.status !== "ok" && (
+                      <div
+                        className={`mt-2 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 text-xs font-semibold ${
+                          ms.status === "due"
+                            ? "bg-destructive/10 text-destructive"
+                            : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                        }`}
+                      >
+                        {ms.status === "due" ? (
+                          <><Wrench className="h-3 w-3 shrink-0" /> Manutenção necessária</>
+                        ) : (
+                          <><AlertTriangle className="h-3 w-3 shrink-0" /> {ms.remaining.toLocaleString("pt-PT")} km para manutenção</>
+                        )}
                       </div>
                     )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       </div>
 
-      {/* Edit dialog */}
-      <Dialog open={!!editTarget} onOpenChange={(open) => !open && setEditTarget(null)}>
-        <DialogContent className="max-w-sm rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>Editar Viatura</DialogTitle>
-            <DialogDescription>
-              Altere os dados da viatura e clique em Guardar.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
+      {/* Add dialog */}
+      <Dialog open={showForm} onOpenChange={(open) => { if (!open) { setShowForm(false); setForm({ matricula: "", tipo: "", km: "", nextMaintenanceKm: "" }); } }}>
+        <DialogContent className="max-w-md rounded-2xl p-0 overflow-hidden gap-0">
+          <div className="bg-linear-to-br from-[#C44020] to-[#a03318] px-6 pt-6 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/15 rounded-xl p-2.5">
+                <Plus className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <DialogTitle className="text-white text-base font-bold leading-none mb-0.5">
+                  Nova Viatura
+                </DialogTitle>
+                <DialogDescription className="text-white/70 text-xs leading-none m-0">
+                  Preencha os dados e clique em Guardar.
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 py-5 space-y-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Matrícula
               </Label>
-              <Input
-                placeholder="LD-12-45-HY"
-                value={editForm.matricula}
-                onChange={(e) =>
-                  setEditForm({ ...editForm, matricula: e.target.value.toUpperCase() })
-                }
-                className="h-10 rounded-xl"
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60">
+                  <Car className="h-4 w-4" />
+                </span>
+                <Input
+                  placeholder="LD-12-45-HY"
+                  value={form.matricula}
+                  onChange={(e) => setForm({ ...form, matricula: e.target.value.toUpperCase() })}
+                  className="h-11 pl-9 rounded-xl font-mono font-bold tracking-widest text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Tipo
+              </Label>
+              <VehicleTypeSelect
+                value={form.tipo}
+                onChange={(v) => setForm({ ...form, tipo: v })}
               />
             </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Quilometragem atual
+                </Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="45000"
+                    value={form.km}
+                    onChange={(e) => setForm({ ...form, km: e.target.value })}
+                    className="h-11 pr-10 rounded-xl text-sm"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground/60 pointer-events-none">
+                    km
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Próx. manutenção
+                </Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="50000"
+                    value={form.nextMaintenanceKm}
+                    onChange={(e) => setForm({ ...form, nextMaintenanceKm: e.target.value })}
+                    className="h-11 pr-10 rounded-xl text-sm"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground/60 pointer-events-none">
+                    km
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border/60 bg-muted/30">
+            <Button
+              variant="ghost"
+              onClick={() => { setShowForm(false); setForm({ matricula: "", tipo: "", km: "", nextMaintenanceKm: "" }); }}
+              disabled={adding}
+              className="rounded-xl h-9 text-muted-foreground"
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-[#C44020] hover:bg-[#A53518] text-white border-0 rounded-xl h-9 px-5 shadow-sm"
+              onClick={handleAdd}
+              disabled={adding}
+            >
+              {adding && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
+              Guardar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editTarget} onOpenChange={(open) => !open && setEditTarget(null)}>
+        <DialogContent className="max-w-md rounded-2xl p-0 overflow-hidden gap-0">
+          {/* Header strip */}
+          <div className="bg-linear-to-br from-[#C44020] to-[#a03318] px-6 pt-6 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/15 rounded-xl p-2.5">
+                <Car className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <DialogTitle className="text-white text-base font-bold leading-none mb-0.5">
+                  Editar Viatura
+                </DialogTitle>
+                <DialogDescription className="text-white/70 text-xs leading-none m-0">
+                  {editTarget?.matricula ?? ""}
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="px-6 py-5 space-y-4">
+            {/* Matrícula */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Matrícula
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60">
+                  <Car className="h-4 w-4" />
+                </span>
+                <Input
+                  placeholder="LD-12-45-HY"
+                  value={editForm.matricula}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, matricula: e.target.value.toUpperCase() })
+                  }
+                  className="h-11 pl-9 rounded-xl font-mono font-bold tracking-widest text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Tipo */}
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Tipo
@@ -420,20 +561,69 @@ export default function VehiclesPage() {
                 onChange={(v) => setEditForm({ ...editForm, tipo: v })}
               />
             </div>
+
+            {/* KM row */}
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Quilometragem atual
+                </Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="45000"
+                    value={editForm.km}
+                    onChange={(e) => setEditForm({ ...editForm, km: e.target.value })}
+                    className="h-11 pr-10 rounded-xl text-sm"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground/60 pointer-events-none">
+                    km
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Próx. manutenção
+                </Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="50000"
+                    value={editForm.nextMaintenanceKm}
+                    onChange={(e) => setEditForm({ ...editForm, nextMaintenanceKm: e.target.value })}
+                    className="h-11 pr-10 rounded-xl text-sm"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground/60 pointer-events-none">
+                    km
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
-          <DialogFooter className="gap-2">
-            <Button variant="ghost" onClick={() => setEditTarget(null)} disabled={saving} className="rounded-xl">
+
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border/60 bg-muted/30">
+            <Button
+              variant="ghost"
+              onClick={() => setEditTarget(null)}
+              disabled={saving}
+              className="rounded-xl h-9 text-muted-foreground"
+            >
               Cancelar
             </Button>
             <Button
-              className="bg-[#C44020] hover:bg-[#A53518] text-white border-0 rounded-xl"
+              className="bg-[#C44020] hover:bg-[#A53518] text-white border-0 rounded-xl h-9 px-5 shadow-sm"
               onClick={handleSaveEdit}
               disabled={saving}
             >
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
               Guardar
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 

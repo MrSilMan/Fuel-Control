@@ -5,7 +5,7 @@ import { format } from "date-fns";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { mecNumber, vehicleId, fuelType, litros, observacao } = body ?? {};
+  const { mecNumber, vehicleId, fuelType, litros, km, observacao } = body ?? {};
 
   if (!mecNumber || !vehicleId || !fuelType || litros == null) {
     return NextResponse.json({ error: "Dados incompletos" }, { status: 400 });
@@ -34,12 +34,15 @@ export async function POST(request: NextRequest) {
 
   const now = new Date();
 
+  const kmValue = km != null && !isNaN(parseInt(String(km), 10)) ? parseInt(String(km), 10) : null;
+
   const log = await prisma.fuelLog.create({
     data: {
       vehicleId: vehicle.id,
       driverId: driver.id,
       gasolina: fuelType === "gasolina" ? qty : null,
       gasoleo: fuelType === "gasoleo" ? qty : null,
+      km: kmValue,
       data: now,
       hora: format(now, "HH:mm"),
       observacao: observacao ?? null,
@@ -47,13 +50,36 @@ export async function POST(request: NextRequest) {
     include: { vehicle: true, driver: true },
   });
 
+  let maintenanceAlert: { status: "warning" | "due"; message: string } | null = null;
+  if (kmValue != null) {
+    const updatedVehicle = await prisma.vehicle.update({
+      where: { id: vehicle.id },
+      data: { km: kmValue },
+    });
+
+    if (updatedVehicle.nextMaintenanceKm != null) {
+      const remaining = updatedVehicle.nextMaintenanceKm - kmValue;
+      if (remaining <= 0) {
+        maintenanceAlert = {
+          status: "due",
+          message: `Manutenção em atraso! A viatura ${vehicle.matricula} atingiu o limite de ${updatedVehicle.nextMaintenanceKm.toLocaleString("pt-PT")} km.`,
+        };
+      } else if (remaining <= 500) {
+        maintenanceAlert = {
+          status: "warning",
+          message: `Manutenção próxima! Faltam ${remaining.toLocaleString("pt-PT")} km para a manutenção da viatura ${vehicle.matricula}.`,
+        };
+      }
+    }
+  }
+
   await writeAudit({
     action: "CREATE",
     entity: "FuelLog",
     entityId: log.id,
     session: null,
-    detail: `[Quiosque] ${log.vehicle.matricula} — ${log.driver.nome}`,
+    detail: `[Quiosque] ${log.vehicle.matricula} — ${log.driver.nome}${kmValue != null ? ` (${kmValue} km)` : ""}`,
   });
 
-  return NextResponse.json({ data: log }, { status: 201 });
+  return NextResponse.json({ data: log, maintenanceAlert }, { status: 201 });
 }

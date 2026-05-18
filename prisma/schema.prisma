@@ -8,11 +8,13 @@ datasource db {
 }
 
 model Vehicle {
-  id        String    @id @default(cuid())
-  matricula String    @unique
-  tipo      String
-  createdAt DateTime  @default(now())
-  logs      FuelLog[]
+  id                String    @id @default(cuid())
+  matricula         String    @unique
+  tipo              String
+  km                Int?
+  nextMaintenanceKm Int?
+  createdAt         DateTime  @default(now())
+  logs              FuelLog[]
 }
 
 model Driver {
@@ -30,6 +32,7 @@ model FuelLog {
   driverId   String
   gasolina   Float?
   gasoleo    Float?
+  km         Int?
   data       DateTime
   observacao String?
   hora       String?

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Fuel, CheckCircle2, ChevronLeft, AlertCircle, Car, Flame, Droplets, Gauge } from "lucide-react";
+import { Loader2, Fuel, CheckCircle2, ChevronLeft, AlertCircle, Car, Flame, Droplets, Gauge, Wrench, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -32,9 +32,13 @@ interface SuccessInfo {
   vehicleTipo: string;
   fuelType: "gasolina" | "gasoleo";
   litros: string;
+  km: string;
+  maintenanceAlert?: { status: "warning" | "due"; message: string } | null;
 }
 
 // ── Form schema ────────────────────────────────────────────────────────────
+const MAINTENANCE_WARNING_THRESHOLD = 500;
+
 const kioskFormSchema = z.object({
   vehicleId: z.string().min(1, "Selecione uma viatura"),
   fuelType: z.enum(["gasolina", "gasoleo"], {
@@ -44,6 +48,10 @@ const kioskFormSchema = z.object({
     .string()
     .min(1, "Insira a quantidade")
     .refine((v) => !isNaN(parseFloat(v)) && parseFloat(v) > 0, "Deve ser maior que 0"),
+  km: z
+    .string()
+    .min(1, "Insira a quilometragem")
+    .refine((v) => !isNaN(parseInt(v, 10)) && parseInt(v, 10) >= 0, "Quilometragem inválida"),
   observacao: z.string().optional(),
 });
 
@@ -74,7 +82,18 @@ export default function KioskPage() {
 
   const selectedVehicleId = watch("vehicleId");
   const fuelType = watch("fuelType");
+  const kmValue = watch("km");
   const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
+
+  const maintenanceStatus = (() => {
+    if (!selectedVehicle?.nextMaintenanceKm) return null;
+    const enteredKm = parseInt(kmValue, 10);
+    if (isNaN(enteredKm)) return null;
+    const remaining = selectedVehicle.nextMaintenanceKm - enteredKm;
+    if (remaining <= 0) return { status: "due" as const, remaining: 0 };
+    if (remaining <= MAINTENANCE_WARNING_THRESHOLD) return { status: "warning" as const, remaining };
+    return null;
+  })();
 
   // Auto-reset countdown on success
   useEffect(() => {
@@ -142,6 +161,7 @@ export default function KioskPage() {
           vehicleId: data.vehicleId,
           fuelType: data.fuelType,
           litros: data.litros,
+          km: parseInt(data.km, 10),
           observacao: data.observacao || null,
         }),
       });
@@ -150,12 +170,15 @@ export default function KioskPage() {
         setSubmitError(err.error ?? "Erro ao guardar. Tente novamente.");
         return;
       }
+      const json = await res.json();
       setSuccessInfo({
         driverName: driver.nome,
         vehiclePlate: selectedVehicle?.matricula ?? "",
         vehicleTipo: selectedVehicle?.tipo ?? "",
         fuelType: data.fuelType,
         litros: data.litros,
+        km: data.km,
+        maintenanceAlert: json.maintenanceAlert ?? null,
       });
       setStep("success");
     } catch {
@@ -330,7 +353,55 @@ export default function KioskPage() {
                   {selectedVehicle && (
                     <p className="text-xs text-[#6B7280] bg-[#F3F4F6] rounded-lg px-3 py-1.5">
                       Tipo: <strong className="text-[#0F1117]">{selectedVehicle.tipo}</strong>
+                      {selectedVehicle.km != null && (
+                        <> &middot; Km atual: <strong className="text-[#0F1117]">{selectedVehicle.km.toLocaleString("pt-PT")}</strong></>
+                      )}
+                      {selectedVehicle.nextMaintenanceKm != null && (
+                        <> &middot; Manutenção aos: <strong className="text-[#0F1117]">{selectedVehicle.nextMaintenanceKm.toLocaleString("pt-PT")} km</strong></>
+                      )}
                     </p>
+                  )}
+                </div>
+
+                {/* Quilometragem */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase tracking-wide text-[#6B7280]">
+                    <span className="flex items-center gap-1.5">
+                      <Gauge className="w-3.5 h-3.5" />
+                      Quilometragem <span className="text-[#C44020]">*</span>
+                    </span>
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="Ex: 45000"
+                      className="h-14 text-2xl font-mono text-center text-[#0F1117] bg-[#F9FAFB] border-[#E5E7EB] focus:border-[#C44020] pr-14"
+                      {...register("km")}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-[#9CA3AF] pointer-events-none">
+                      km
+                    </span>
+                  </div>
+                  {errors.km && (
+                    <p className="text-xs text-[#C44020] flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />{errors.km.message}
+                    </p>
+                  )}
+                  {maintenanceStatus && (
+                    <div className={`flex items-start gap-2 rounded-lg px-3 py-2.5 text-sm font-medium ${
+                      maintenanceStatus.status === "due"
+                        ? "bg-red-50 border border-red-200 text-red-700"
+                        : "bg-amber-50 border border-amber-200 text-amber-700"
+                    }`}>
+                      {maintenanceStatus.status === "due"
+                        ? <Wrench className="w-4 h-4 mt-0.5 shrink-0" />
+                        : <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />}
+                      {maintenanceStatus.status === "due"
+                        ? `Manutenção em atraso! Limite de ${selectedVehicle!.nextMaintenanceKm!.toLocaleString("pt-PT")} km atingido.`
+                        : `Manutenção em ${maintenanceStatus.remaining.toLocaleString("pt-PT")} km (aos ${selectedVehicle!.nextMaintenanceKm!.toLocaleString("pt-PT")} km).`}
+                    </div>
                   )}
                 </div>
 
@@ -475,6 +546,20 @@ export default function KioskPage() {
           O abastecimento foi registado com sucesso.
         </p>
 
+        {/* Maintenance alert */}
+        {successInfo?.maintenanceAlert && (
+          <div className={`w-full rounded-2xl px-5 py-4 mb-4 flex items-start gap-3 text-sm font-medium ${
+            successInfo.maintenanceAlert.status === "due"
+              ? "bg-red-500/20 border border-red-400/30 text-red-300"
+              : "bg-amber-500/20 border border-amber-400/30 text-amber-300"
+          }`}>
+            {successInfo.maintenanceAlert.status === "due"
+              ? <Wrench className="w-5 h-5 mt-0.5 shrink-0" />
+              : <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0" />}
+            <span>{successInfo.maintenanceAlert.message}</span>
+          </div>
+        )}
+
         {/* Summary card */}
         <div className="w-full rounded-2xl border border-white/10 bg-white/8 backdrop-blur-sm px-6 py-5 text-left space-y-3.5 mb-8">
           <SummaryRow label="Condutor" value={successInfo?.driverName ?? ""} />
@@ -489,6 +574,11 @@ export default function KioskPage() {
             label="Combustível"
             value={successInfo?.fuelType === "gasolina" ? "Gasolina" : "Gasóleo"}
             accent={successInfo?.fuelType === "gasolina" ? "amber" : "blue"}
+          />
+          <div className="border-t border-white/10" />
+          <SummaryRow
+            label="Quilometragem"
+            value={`${parseInt(successInfo?.km ?? "0", 10).toLocaleString("pt-PT")} km`}
           />
           <div className="border-t border-white/10" />
           <SummaryRow

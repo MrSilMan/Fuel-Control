@@ -124,13 +124,37 @@ export async function POST(request: NextRequest) {
     include: { vehicle: true, driver: true },
   });
 
+  // Update vehicle's current km if this log has km data
+  let maintenanceAlert: { status: "warning" | "due"; message: string } | null = null;
+  if (parsed.data.km != null) {
+    const updatedVehicle = await prisma.vehicle.update({
+      where: { id: log.vehicleId },
+      data: { km: parsed.data.km },
+    });
+
+    if (updatedVehicle.nextMaintenanceKm != null) {
+      const remaining = updatedVehicle.nextMaintenanceKm - parsed.data.km;
+      if (remaining <= 0) {
+        maintenanceAlert = {
+          status: "due",
+          message: `Manutenção em atraso! A viatura ${log.vehicle.matricula} atingiu o limite de ${updatedVehicle.nextMaintenanceKm.toLocaleString("pt-PT")} km.`,
+        };
+      } else if (remaining <= 500) {
+        maintenanceAlert = {
+          status: "warning",
+          message: `Manutenção próxima! Faltam ${remaining.toLocaleString("pt-PT")} km para a manutenção da viatura ${log.vehicle.matricula}.`,
+        };
+      }
+    }
+  }
+
   await writeAudit({
     action: "CREATE",
     entity: "FuelLog",
     entityId: log.id,
     session,
-    detail: `Registo criado: ${log.vehicle.matricula} — ${log.driver.nome}`,
+    detail: `Registo criado: ${log.vehicle.matricula} — ${log.driver.nome}${parsed.data.km != null ? ` (${parsed.data.km} km)` : ""}`,
   });
 
-  return NextResponse.json({ data: log }, { status: 201 });
+  return NextResponse.json({ data: log, maintenanceAlert }, { status: 201 });
 }

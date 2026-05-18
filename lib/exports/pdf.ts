@@ -41,13 +41,30 @@ const s = StyleSheet.create({
   },
   header: {
     backgroundColor: C.BLUE,
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
   },
   headerTitle: {
     color: C.WHITE,
     fontSize: 13,
     fontFamily: "Helvetica-Bold",
+    flex: 1,
+    textAlign: "center",
+  },
+  headerBrand: {
+    color: C.WHITE,
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    textAlign: "right",
+  },
+  headerBrandSub: {
+    color: "#93C5FD",
+    fontSize: 6.5,
+    textAlign: "right",
+    marginTop: 2,
   },
   periodSub: {
     backgroundColor: C.BLUE_50,
@@ -279,11 +296,18 @@ function PdfDocument({
       Page,
       { size: "A4", orientation: "landscape", style: s.page },
 
-      // Title
+      // Title + brand header
       ce(
         View,
         { style: s.header },
+        ce(View, { style: { width: 80 } }),
         ce(Text, { style: s.headerTitle }, "MAPA DE CONTROLO DE COMBUSTÍVEL"),
+        ce(
+          View,
+          { style: { width: 80, alignItems: "flex-end" } },
+          ce(Text, { style: s.headerBrand }, "⛽ FuelControl"),
+          ce(Text, { style: s.headerBrandSub }, "Gestão de Combustível"),
+        ),
       ),
 
       // Period subtitle

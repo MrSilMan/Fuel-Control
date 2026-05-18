@@ -39,7 +39,9 @@
       "Bash(Select-Object -First 5)",
       "Bash(docker info *)",
       "Bash(Get-ChildItem -Recurse -Filter \"*.tsx\" \"app/\\(dashboard\\)\")",
-      "Bash(git restore *)"
+      "Bash(git restore *)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\" -Recurse -Depth 3 | Select-Object -Property FullName | ConvertTo-Json -AsArray | ConvertFrom-Json | ForEach-Object { $_.FullName })",
+      "PowerShell(cd \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\"; $output = npx tsc --noEmit 2>&1; $output | Where-Object { $_ -match \"LogForm|vehicles/page|vehicles/route|logs/route|log.schema\" })"
     ],
     "additionalDirectories": [
       "c:\\Users\\USER\\Documents\\DOCS\\SoftWise\\Softwise-Proj\\FuelControl\\app\\api\\kiosk"

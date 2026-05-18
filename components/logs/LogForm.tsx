@@ -16,17 +16,23 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Save } from "lucide-react";
+import { AlertTriangle, Loader2, Save, Wrench } from "lucide-react";
 import type { Vehicle, Driver, FuelLog } from "@/app/generated/prisma/client";
 import { format } from "date-fns";
+
+const MAINTENANCE_WARNING_THRESHOLD = 500;
 
 const logFormSchema = z.object({
   vehicleId: z.string().min(1, "Viatura é obrigatória"),
   driverId: z.string().min(1, "Condutor é obrigatório"),
-  fuelType: z.enum(["gasolina", "gasoleo"], { required_error: "Selecione o tipo de combustível" }),
+  fuelType: z.enum(["gasolina", "gasoleo"], { error: "Selecione o tipo de combustível" }),
   litros: z.string().min(1, "Quantidade é obrigatória").refine(
     (v) => !isNaN(parseFloat(v)) && parseFloat(v) > 0,
     "Quantidade deve ser maior que 0"
+  ),
+  km: z.string().min(1, "Quilometragem é obrigatória").refine(
+    (v) => !isNaN(parseInt(v, 10)) && parseInt(v, 10) >= 0,
+    "Quilometragem inválida"
   ),
   data: z.string().min(1, "Data é obrigatória"),
   hora: z.string().optional(),
@@ -65,6 +71,7 @@ export function LogForm({ log, vehicles, drivers, operatorDriverId, isOperator }
         : log?.gasolina != null && log.gasolina > 0
           ? String(log.gasolina)
           : "",
+      km: log?.km != null ? String(log.km) : "",
       data: log ? format(new Date(log.data), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
       hora: log?.hora ?? (isOperator ? format(new Date(), "HH:mm") : ""),
       observacao: log?.observacao ?? "",
@@ -74,9 +81,20 @@ export function LogForm({ log, vehicles, drivers, operatorDriverId, isOperator }
   const selectedVehicleId = watch("vehicleId");
   const selectedDriverId = watch("driverId");
   const fuelType = watch("fuelType");
+  const kmValue = watch("km");
 
   const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
   const selectedDriver = drivers.find((d) => d.id === selectedDriverId);
+
+  const maintenanceStatus = (() => {
+    if (!selectedVehicle?.nextMaintenanceKm) return null;
+    const enteredKm = parseInt(kmValue, 10);
+    if (isNaN(enteredKm)) return null;
+    const remaining = selectedVehicle.nextMaintenanceKm - enteredKm;
+    if (remaining <= 0) return { status: "due" as const, remaining: 0 };
+    if (remaining <= MAINTENANCE_WARNING_THRESHOLD) return { status: "warning" as const, remaining };
+    return null;
+  })();
 
   async function onSubmit(data: LogFormValues) {
     setSubmitting(true);
@@ -90,6 +108,7 @@ export function LogForm({ log, vehicles, drivers, operatorDriverId, isOperator }
         driverId: data.driverId,
         gasolina: data.fuelType === "gasolina" ? qty : null,
         gasoleo: data.fuelType === "gasoleo" ? qty : null,
+        km: data.km ? parseInt(data.km, 10) : null,
         data: new Date(data.data),
         hora: data.hora || null,
         observacao: data.observacao || null,
@@ -106,6 +125,8 @@ export function LogForm({ log, vehicles, drivers, operatorDriverId, isOperator }
         throw new Error(error.message || "Erro ao guardar registo");
       }
 
+      const json = await res.json();
+
       toast({
         variant: "success",
         title: isEditing ? "Registo atualizado" : "Registo criado",
@@ -113,6 +134,15 @@ export function LogForm({ log, vehicles, drivers, operatorDriverId, isOperator }
           ? "O registo foi atualizado com sucesso."
           : "Novo registo de combustível criado.",
       });
+
+      if (json.maintenanceAlert) {
+        const alert = json.maintenanceAlert as { status: "warning" | "due"; message: string };
+        toast({
+          variant: "destructive",
+          title: alert.status === "due" ? "Manutenção necessária!" : "Manutenção próxima!",
+          description: alert.message,
+        });
+      }
 
       router.push("/logs");
       router.refresh();
@@ -156,8 +186,14 @@ export function LogForm({ log, vehicles, drivers, operatorDriverId, isOperator }
             </p>
           )}
           {selectedVehicle && (
-            <p className="text-xs text-[var(--muted-foreground)]">
+            <p className="text-xs text-muted-foreground">
               Tipo: <strong>{selectedVehicle.tipo}</strong>
+              {selectedVehicle.km != null && (
+                <> · Km atual: <strong>{selectedVehicle.km.toLocaleString("pt-PT")}</strong></>
+              )}
+              {selectedVehicle.nextMaintenanceKm != null && (
+                <> · Manutenção aos: <strong>{selectedVehicle.nextMaintenanceKm.toLocaleString("pt-PT")} km</strong></>
+              )}
             </p>
           )}
         </div>
@@ -192,6 +228,42 @@ export function LogForm({ log, vehicles, drivers, operatorDriverId, isOperator }
             <p className="text-xs text-[var(--muted-foreground)]">
               Área: <strong>{selectedDriver.area}</strong>
             </p>
+          )}
+        </div>
+
+        {/* Quilometragem */}
+        <div className="space-y-2">
+          <Label htmlFor="km">
+            Quilometragem <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id="km"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="Ex: 45000"
+            {...register("km")}
+          />
+          {errors.km && (
+            <p className="text-xs text-destructive">{errors.km.message}</p>
+          )}
+          {maintenanceStatus && (
+            <div
+              className={`flex items-start gap-2 rounded-lg px-3 py-2 text-xs font-medium ${
+                maintenanceStatus.status === "due"
+                  ? "bg-destructive/10 text-destructive"
+                  : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+              }`}
+            >
+              {maintenanceStatus.status === "due" ? (
+                <Wrench className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+              ) : (
+                <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+              )}
+              {maintenanceStatus.status === "due"
+                ? `Manutenção em atraso! Limite de ${selectedVehicle!.nextMaintenanceKm!.toLocaleString("pt-PT")} km atingido.`
+                : `Manutenção em ${maintenanceStatus.remaining.toLocaleString("pt-PT")} km (aos ${selectedVehicle!.nextMaintenanceKm!.toLocaleString("pt-PT")} km).`}
+            </div>
           )}
         </div>
 
