@@ -5,7 +5,6 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -29,13 +28,13 @@ interface Vehicle {
 const VEHICLE_TYPES = ["HIACE", "Coaster", "Foton", "Pickup", "Sedan", "SUV", "Outro"];
 
 const TIPO_COLORS: Record<string, string> = {
-  HIACE:   "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/25 dark:text-blue-300 dark:border-blue-700",
-  Coaster: "bg-indigo-100 text-indigo-800 border-indigo-300 dark:bg-indigo-900/25 dark:text-indigo-300 dark:border-indigo-700",
-  Foton:   "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/25 dark:text-amber-300 dark:border-amber-700",
-  Pickup:  "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/25 dark:text-emerald-300 dark:border-emerald-700",
-  Sedan:   "bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/25 dark:text-purple-300 dark:border-purple-700",
-  SUV:     "bg-orange-100 text-[#C44020] border-orange-300 dark:bg-[#C44020]/20 dark:text-orange-300 dark:border-[#C44020]/40",
-  Outro:   "bg-muted text-muted-foreground border-border",
+  HIACE:   "bg-blue-600 text-white border-blue-600",
+  Coaster: "bg-indigo-500 text-white border-indigo-500",
+  Foton:   "bg-amber-500 text-white border-amber-500",
+  Pickup:  "bg-emerald-600 text-white border-emerald-600",
+  Sedan:   "bg-purple-600 text-white border-purple-600",
+  SUV:     "bg-[#C44020] text-white border-[#C44020]",
+  Outro:   "bg-zinc-500 text-white border-zinc-500",
 };
 
 function VehicleTypeSelect({
@@ -351,7 +350,7 @@ export default function VehiclesPage() {
                           {v.matricula}
                         </p>
                         <span
-                          className={`inline-block mt-2 text-[11px] font-semibold border rounded-full px-2 py-0.5 ${
+                          className={`inline-block mt-2 text-xs font-bold border rounded-full px-2 py-0.5 ${
                             TIPO_COLORS[v.tipo] ?? TIPO_COLORS.Outro
                           }`}
                         >

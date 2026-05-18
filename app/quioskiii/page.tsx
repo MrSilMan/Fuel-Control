@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Fuel, CheckCircle2, ChevronLeft, AlertCircle, User } from "lucide-react";
+import { Loader2, Fuel, CheckCircle2, ChevronLeft, AlertCircle, Car, Flame, Droplets, Gauge } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -211,7 +211,7 @@ export default function KioskPage() {
                 setLookupError("");
               }}
               onKeyDown={(e) => e.key === "Enter" && !lookingUp && handleLookup()}
-              className="h-14 text-xl font-mono tracking-widest text-center uppercase bg-[#F2F4F8] border-[#E0E2E9] focus:border-[#C44020]"
+              className="h-14 text-xl font-mono tracking-widest text-center uppercase text-[#0F1117] bg-[#F2F4F8] border-[#E0E2E9] focus:border-[#C44020]"
               autoComplete="off"
               autoFocus
               disabled={lookingUp}
@@ -247,137 +247,170 @@ export default function KioskPage() {
   // ══════════════════════════════════════════════════════════════════════
   if (step === "form") {
     return (
-      <div className="min-h-screen bg-[#F2F4F8] flex flex-col">
-        {/* Driver banner */}
-        <div className="bg-[#0D1526] px-5 py-4 flex items-center gap-3 shadow-lg">
+      <div className="relative min-h-screen bg-[#0D1526] flex flex-col overflow-hidden">
+        {/* Background texture */}
+        <div className="absolute inset-0 login-dot-grid opacity-20 pointer-events-none" />
+        <div className="absolute inset-0 login-stripes opacity-40 pointer-events-none" />
+        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#C44020]/8 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-blue-500/6 blur-3xl pointer-events-none" />
+
+        {/* Top bar */}
+        <div className="relative z-10 flex items-center gap-3 px-5 py-4 border-b border-white/8">
           <button
             onClick={resetAll}
-            className="text-white/50 hover:text-white transition-colors rounded-lg p-1 -ml-1"
+            className="w-9 h-9 rounded-xl bg-white/8 hover:bg-white/14 flex items-center justify-center text-white/60 hover:text-white transition-all"
             aria-label="Voltar"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <div className="w-10 h-10 rounded-full bg-[#C44020] flex items-center justify-center font-bold text-white text-sm shrink-0 uppercase">
+
+          <div className="w-10 h-10 rounded-full bg-[#C44020] flex items-center justify-center font-bold text-white text-sm shrink-0 uppercase shadow-lg shadow-[#C44020]/30">
             {driver?.nome.charAt(0)}
           </div>
           <div className="min-w-0">
-            <p className="text-white font-semibold text-sm leading-tight truncate">
-              {driver?.nome}
-            </p>
-            <p className="text-white/45 text-xs font-mono truncate">
+            <p className="text-white font-semibold text-sm leading-tight truncate">{driver?.nome}</p>
+            <p className="text-white/40 text-xs font-mono truncate">
               {driver?.nMec} &middot; {driver?.area}
             </p>
           </div>
-          <div className="ml-auto flex items-center gap-1.5 shrink-0">
-            <Fuel className="w-4 h-4 text-[#C44020]" />
-            <span className="text-white/50 text-xs">FuelControl</span>
+
+          <div className="ml-auto flex items-center gap-1.5 shrink-0 bg-white/6 rounded-xl px-3 py-1.5">
+            <Fuel className="w-3.5 h-3.5 text-[#C44020]" />
+            <span className="text-white/50 text-xs font-medium">FuelControl</span>
           </div>
         </div>
 
         {/* Form area */}
-        <div className="flex-1 flex items-center justify-center p-5">
-          <div className="w-full max-w-lg">
-            <div className="bg-white rounded-2xl shadow-sm border border-[#E0E2E9] px-6 py-7">
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-[#0F1117]">
-                  Registo de Abastecimento
-                </h2>
-                <p className="text-[#4B5563] text-sm mt-0.5">
-                  Preencha os dados do abastecimento
-                </p>
-              </div>
+        <div className="relative z-10 flex-1 flex items-start justify-center p-5 overflow-y-auto">
+          <div className="w-full max-w-lg my-auto">
 
+            {/* Card header strip */}
+            <div className="bg-[#C44020] rounded-t-2xl px-6 py-4 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
+                <Fuel className="w-5 h-5 text-white" strokeWidth={1.75} />
+              </div>
+              <div>
+                <p className="text-white font-bold text-base leading-tight">Registo de Abastecimento</p>
+                <p className="text-white/65 text-xs">Preencha os campos abaixo</p>
+              </div>
+            </div>
+
+            {/* Card body */}
+            <div className="bg-white rounded-b-2xl shadow-2xl shadow-black/40 px-6 py-6">
               <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-5">
+
                 {/* Vehicle */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">
-                    Viatura <span className="text-[#C44020]">*</span>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase tracking-wide text-[#6B7280]">
+                    <span className="flex items-center gap-1.5">
+                      <Car className="w-3.5 h-3.5" />
+                      Viatura <span className="text-[#C44020]">*</span>
+                    </span>
                   </Label>
                   <Select
                     value={selectedVehicleId ?? ""}
                     onValueChange={(v) => setValue("vehicleId", v, { shouldValidate: true })}
                   >
-                    <SelectTrigger className="h-12 text-base">
+                    <SelectTrigger className="h-12 text-base text-[#0F1117] bg-[#F9FAFB] border-[#E5E7EB] focus:border-[#C44020]">
                       <SelectValue placeholder="Selecionar viatura..." />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border-[#E5E7EB] shadow-xl">
                       {vehicles.map((v) => (
-                        <SelectItem key={v.id} value={v.id} className="py-3 text-base">
+                        <SelectItem key={v.id} value={v.id} className="py-3 text-base text-[#0F1117] focus:bg-[#FFF4F1] focus:text-[#C44020]">
                           {v.matricula} &mdash; {v.tipo}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {errors.vehicleId && (
-                    <p className="text-xs text-[#C44020]">{errors.vehicleId.message}</p>
+                    <p className="text-xs text-[#C44020] flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />{errors.vehicleId.message}
+                    </p>
                   )}
                   {selectedVehicle && (
-                    <p className="text-xs text-[#4B5563]">
-                      Tipo: <strong>{selectedVehicle.tipo}</strong>
+                    <p className="text-xs text-[#6B7280] bg-[#F3F4F6] rounded-lg px-3 py-1.5">
+                      Tipo: <strong className="text-[#0F1117]">{selectedVehicle.tipo}</strong>
                     </p>
                   )}
                 </div>
 
                 {/* Fuel type */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">
-                    Tipo de Combustível <span className="text-[#C44020]">*</span>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase tracking-wide text-[#6B7280]">
+                    <span className="flex items-center gap-1.5">
+                      <Gauge className="w-3.5 h-3.5" />
+                      Combustível <span className="text-[#C44020]">*</span>
+                    </span>
                   </Label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setValue("fuelType", "gasolina", { shouldValidate: true })}
-                      className={`h-14 rounded-xl text-sm font-semibold border-2 transition-all duration-150 ${
+                      className={`h-16 rounded-xl font-semibold border-2 transition-all duration-150 flex flex-col items-center justify-center gap-1 ${
                         fuelType === "gasolina"
-                          ? "bg-amber-50 border-amber-400 text-amber-800"
-                          : "bg-white border-[#E0E2E9] text-[#4B5563] hover:border-amber-300"
+                          ? "bg-amber-50 border-amber-400 text-amber-800 shadow-md shadow-amber-200"
+                          : "bg-[#F9FAFB] border-[#E5E7EB] text-[#6B7280] hover:border-amber-300 hover:bg-amber-50/40"
                       }`}
                     >
-                      Gasolina
+                      <Flame className={`w-5 h-5 ${fuelType === "gasolina" ? "text-amber-500" : "text-[#9CA3AF]"}`} />
+                      <span className="text-sm">Gasolina</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setValue("fuelType", "gasoleo", { shouldValidate: true })}
-                      className={`h-14 rounded-xl text-sm font-semibold border-2 transition-all duration-150 ${
+                      className={`h-16 rounded-xl font-semibold border-2 transition-all duration-150 flex flex-col items-center justify-center gap-1 ${
                         fuelType === "gasoleo"
-                          ? "bg-blue-50 border-blue-400 text-blue-800"
-                          : "bg-white border-[#E0E2E9] text-[#4B5563] hover:border-blue-300"
+                          ? "bg-blue-50 border-blue-400 text-blue-800 shadow-md shadow-blue-200"
+                          : "bg-[#F9FAFB] border-[#E5E7EB] text-[#6B7280] hover:border-blue-300 hover:bg-blue-50/40"
                       }`}
                     >
-                      Gas&oacute;leo
+                      <Droplets className={`w-5 h-5 ${fuelType === "gasoleo" ? "text-blue-500" : "text-[#9CA3AF]"}`} />
+                      <span className="text-sm">Gas&oacute;leo</span>
                     </button>
                   </div>
                   {errors.fuelType && (
-                    <p className="text-xs text-[#C44020]">{errors.fuelType.message}</p>
+                    <p className="text-xs text-[#C44020] flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />{errors.fuelType.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Litros */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">
-                    Quantidade (Litros) <span className="text-[#C44020]">*</span>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase tracking-wide text-[#6B7280]">
+                    <span className="flex items-center gap-1.5">
+                      <Gauge className="w-3.5 h-3.5" />
+                      Quantidade <span className="text-[#C44020]">*</span>
+                    </span>
                   </Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    placeholder="0.00"
-                    className="h-12 text-xl font-mono text-center"
-                    {...register("litros")}
-                  />
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="0.00"
+                      className="h-14 text-2xl font-mono text-center text-[#0F1117] bg-[#F9FAFB] border-[#E5E7EB] focus:border-[#C44020] pr-14"
+                      {...register("litros")}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-[#9CA3AF] pointer-events-none">
+                      L
+                    </span>
+                  </div>
                   {errors.litros && (
-                    <p className="text-xs text-[#C44020]">{errors.litros.message}</p>
+                    <p className="text-xs text-[#C44020] flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />{errors.litros.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Observação */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[#4B5563]">
-                    Observa&ccedil;&atilde;o <span className="font-normal text-[#9CA3AF]">(opcional)</span>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold uppercase tracking-wide text-[#9CA3AF]">
+                    Observa&ccedil;&atilde;o <span className="font-normal normal-case">(opcional)</span>
                   </Label>
                   <Input
                     placeholder="Notas adicionais..."
-                    className="h-12"
+                    className="h-11 text-[#0F1117] bg-[#F9FAFB] border-[#E5E7EB] focus:border-[#C44020]"
                     {...register("observacao")}
                   />
                 </div>
@@ -391,19 +424,19 @@ export default function KioskPage() {
                 )}
 
                 {/* Actions */}
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3 pt-1">
                   <button
                     type="button"
                     onClick={resetAll}
                     disabled={isSubmitting}
-                    className="flex-1 h-12 rounded-xl border-2 border-[#E0E2E9] text-[#4B5563] font-medium hover:border-[#0D1526] hover:text-[#0D1526] transition-colors disabled:opacity-50"
+                    className="flex-1 h-12 rounded-xl border-2 border-[#E5E7EB] text-[#6B7280] font-medium hover:border-[#0D1526] hover:text-[#0D1526] transition-colors disabled:opacity-50"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-[2] h-12 rounded-xl bg-[#C44020] text-white font-semibold flex items-center justify-center gap-2 hover:bg-[#A53518] active:scale-[0.97] transition-all duration-150 disabled:opacity-60 shadow-md shadow-[#C44020]/20"
+                    className="flex-[2] h-12 rounded-xl bg-[#C44020] text-white font-semibold flex items-center justify-center gap-2 hover:bg-[#A53518] active:scale-[0.97] transition-all duration-150 disabled:opacity-60 shadow-lg shadow-[#C44020]/30"
                   >
                     {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                     {isSubmitting ? "A guardar..." : "Registar Abastecimento"}
@@ -411,6 +444,7 @@ export default function KioskPage() {
                 </div>
               </form>
             </div>
+
           </div>
         </div>
       </div>

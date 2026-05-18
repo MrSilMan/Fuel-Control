@@ -30,14 +30,14 @@ interface Driver {
 const AREAS = ["DAS", "Eurost", "DMC", "DGAS", "TIC", "RH", "Financeiro", "Outro"];
 
 const AREA_COLORS: Record<string, string> = {
-  DAS:        "bg-orange-100 text-[#C44020] border-orange-300 dark:bg-[#C44020]/20 dark:text-orange-300 dark:border-[#C44020]/40",
-  Eurost:     "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/25 dark:text-blue-300 dark:border-blue-700",
-  DMC:        "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/25 dark:text-emerald-300 dark:border-emerald-700",
-  DGAS:       "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/25 dark:text-amber-300 dark:border-amber-700",
-  TIC:        "bg-indigo-100 text-indigo-800 border-indigo-300 dark:bg-indigo-900/25 dark:text-indigo-300 dark:border-indigo-700",
-  RH:         "bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/25 dark:text-purple-300 dark:border-purple-700",
-  Financeiro: "bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-900/25 dark:text-teal-300 dark:border-teal-700",
-  Outro:      "bg-muted text-muted-foreground border-border",
+  DAS:        "bg-[#C44020] text-white border-[#C44020]",
+  Eurost:     "bg-blue-600 text-white border-blue-600",
+  DMC:        "bg-emerald-600 text-white border-emerald-600",
+  DGAS:       "bg-amber-500 text-white border-amber-500",
+  TIC:        "bg-indigo-500 text-white border-indigo-500",
+  RH:         "bg-purple-600 text-white border-purple-600",
+  Financeiro: "bg-teal-600 text-white border-teal-600",
+  Outro:      "bg-zinc-500 text-white border-zinc-500",
 };
 
 function AreaSelect({
@@ -339,7 +339,7 @@ export default function DriversPage() {
                           {d.nMec}
                         </p>
                         <span
-                          className={`inline-block mt-1.5 text-[11px] font-semibold border rounded-full px-2 py-0.5 ${areaClass}`}
+                          className={`inline-block mt-1.5 text-xs font-bold border rounded-full px-2 py-0.5 ${areaClass}`}
                         >
                           {d.area}
                         </span>

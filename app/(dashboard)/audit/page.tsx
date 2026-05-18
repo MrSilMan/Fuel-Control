@@ -26,17 +26,17 @@ const ACTION_META: Record<
 > = {
   CREATE: {
     label:     "Criação",
-    className: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/25 dark:text-emerald-300 dark:border-emerald-700",
+    className: "bg-emerald-600 text-white border-transparent",
     icon:      FilePlus,
   },
   UPDATE: {
     label:     "Edição",
-    className: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/25 dark:text-amber-300 dark:border-amber-700",
+    className: "bg-amber-500 text-white border-transparent",
     icon:      FilePen,
   },
   DELETE: {
     label:     "Eliminação",
-    className: "bg-red-100 text-red-800 border-red-300 dark:bg-red-900/25 dark:text-red-300 dark:border-red-700",
+    className: "bg-red-600 text-white border-transparent",
     icon:      FileX,
   },
 };
@@ -176,7 +176,7 @@ export default function AuditPage() {
                         <td className="px-4 py-3">
                           <span
                             className={cn(
-                              "inline-flex items-center gap-1.5 text-[11px] font-semibold border rounded-full px-2.5 py-1",
+                              "inline-flex items-center gap-1.5 text-xs font-semibold border rounded-md px-2.5 py-0.5",
                               meta?.className ?? "bg-muted text-muted-foreground border-border"
                             )}
                           >
@@ -210,7 +210,7 @@ export default function AuditPage() {
                     <div className="flex items-start justify-between gap-2">
                       <span
                         className={cn(
-                          "inline-flex items-center gap-1.5 text-[11px] font-semibold border rounded-full px-2.5 py-1",
+                          "inline-flex items-center gap-1.5 text-xs font-semibold border rounded-md px-2.5 py-0.5",
                           meta?.className ?? "bg-muted text-muted-foreground border-border"
                         )}
                       >

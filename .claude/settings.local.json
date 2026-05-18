@@ -36,7 +36,10 @@
       "Bash(Select-Object -First 30 FullName)",
       "Bash(mkdir -p \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\\\\app\\\\api\\\\kiosk\\\\lookup\" \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\\\\app\\\\api\\\\kiosk\\\\submit\" \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\\\\app\\\\quioskiii\" 2>/dev/null; echo \"done\")",
       "Bash(Get-Content \"c:\\\\Users\\\\USER\\\\Documents\\\\DOCS\\\\SoftWise\\\\Softwise-Proj\\\\FuelControl\\\\.next\\\\dev\\\\server\\\\middleware.js\")",
-      "Bash(Select-Object -First 5)"
+      "Bash(Select-Object -First 5)",
+      "Bash(docker info *)",
+      "Bash(Get-ChildItem -Recurse -Filter \"*.tsx\" \"app/\\(dashboard\\)\")",
+      "Bash(git restore *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\USER\\Documents\\DOCS\\SoftWise\\Softwise-Proj\\FuelControl\\app\\api\\kiosk"
